@@ -1,0 +1,27 @@
+﻿<div class="container">
+    <!-- ko if: serverError -->
+    <div class=" alert alert-danger" role="alert">
+        <strong>Opps!</strong> <span data-bind="text: serverError"></span>
+    </div>
+    <!-- /ko -->
+    <form class="form-horizontal">
+        <div class="form-group">
+            <label for="inputTitle" class="col-sm-2 control-label">Title</label>
+            <div class="col-sm-10">
+                <input data-bind="value: title" type="text" class="form-control" id="inputTitle" placeholder="Title" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="inputISBN" class="col-sm-2 control-label">ISBN</label>
+            <div class="col-sm-10">
+                <input data-bind="value: isbn, disable: id" type="text" class="form-control" id="inputISBN" placeholder="ISBN" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+                <button data-bind="click: save" type="submit" class="btn btn-primary">Save</button>
+                <a href="#" class="btn btn-default">Cancel</a>
+            </div>
+        </div>
+    </form>
+</div>

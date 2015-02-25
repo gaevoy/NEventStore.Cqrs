@@ -1,0 +1,30 @@
+﻿<div class="container">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>ISBN</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- ko foreach: items -->
+            <tr>
+                <td data-bind="text: Title"></td>
+                <td data-bind="text: ISBN"></td>
+                <td class="text-right">
+                    <a class="btn btn-primary" data-bind="attr: { href: '#Book/' + Id }">Edit</a>
+                    <button class="btn btn-default" data-bind="click: $root.delete">Delete</button>
+                </td>
+            </tr>
+            <!-- /ko -->
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3" class="text-right">
+                    <a class="btn btn-primary" href="#Book/New">New</a>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
