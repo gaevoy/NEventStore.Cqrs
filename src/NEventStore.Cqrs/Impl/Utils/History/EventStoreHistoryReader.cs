@@ -17,7 +17,7 @@ namespace NEventStore.Cqrs.Impl.Utils.History
 
         public IEnumerable<Commit> Read(DateTime start, DateTime end)
         {
-            return es.Advanced.GetFromTo(start, end).Cast<Commit>();
+            return es.Advanced.GetFromTo(start, end).Cast<Commit>().Where(e => !e.Headers.ContainsKey("SagaType")).ToArray();
         }
     }
 }

@@ -94,9 +94,9 @@ namespace NEventStore.Cqrs.Impl.Utils.Tasks
             }
         }
 
-        private void Rebuild(Checkpoint from, Checkpoint to, IProjection[] projections)
+        private void Rebuild(Checkpoint from, Checkpoint to, IEnumerable<IProjection> rawProjections)
         {
-            var errors = new HashSet<IProjection>();
+            var projections = rawProjections.Select(e => new ProjectionWrapper(e, log)).ToArray();
             if (!projections.Any())
             {
                 return;
@@ -105,13 +105,7 @@ namespace NEventStore.Cqrs.Impl.Utils.Tasks
             if (from.IsUndefined)
             {
                 foreach (var projection in projections)
-                {
                     projection.Clear();
-                }
-            }
-            foreach (var projection in projections.OfType<IBuferredProjection>())
-            {
-                projection.Begin();
             }
 
             DateTime start;
@@ -124,30 +118,19 @@ namespace NEventStore.Cqrs.Impl.Utils.Tasks
                 start = from.CommitStampProcessed.Value.AddSeconds(-2);
             }
 
+            foreach (var projection in projections)
+                projection.Begin();
+
             var commits = historyReader.Read(start, DateTime.UtcNow);
             commits = FilterByCheckpoints(commits, from, to);
             commits = PauseAware(commits, from);
-            commits = ShowLogs(commits, from, to);
+            commits = ShowLogs(commits, from, to, projections);
 
-            foreach (ICommit commit in commits)
-            {
-                if (commit.Headers.ContainsKey("SagaType"))
-                    continue;
+            foreach (var commit in commits)
+                RebuildCommit(commit, projections);
 
-                RebuildCommit(commit, projections, errors);
-            }
-
-            foreach (var projection in projections.OfType<IBuferredProjection>())
-            {
-                try
-                {
-                    projection.Flush();
-                }
-                catch (Exception ex)
-                {
-                    log.Error(ex);
-                }
-            }
+            foreach (var projection in projections)
+                projection.Flush();
         }
 
         private IEnumerable<Commit> FilterByCheckpoints(IEnumerable<Commit> commits, Checkpoint from, Checkpoint to)
@@ -197,7 +180,7 @@ namespace NEventStore.Cqrs.Impl.Utils.Tasks
             }
         }
 
-        private IEnumerable<Commit> ShowLogs(IEnumerable<Commit> commits, Checkpoint from, Checkpoint to)
+        private IEnumerable<Commit> ShowLogs(IEnumerable<Commit> commits, Checkpoint from, Checkpoint to, ProjectionWrapper[] projections)
         {
             bool first = true;
             ICommit commitProcessed = null;
@@ -221,34 +204,25 @@ namespace NEventStore.Cqrs.Impl.Utils.Tasks
                 commitProcessed = commit;
                 if (noOfCommits % 1000 == 0)
                     log.Info(string.Format("{0} commits were processed {1}", noOfCommits, timer.Elapsed));
+                if (noOfCommits % 10000 == 0)
+                    log.Debug("Projection statistics" + Environment.NewLine + ProjectionWrapper.GetStatistic(projections, take: 3));
             }
             if (commitProcessed != null)
             {
-                log.Info(string.Format("{0} commits were processed {1}", noOfCommits, timer.Elapsed));
+                log.Info(string.Format("{0} commits were processed {1:mm\\:ss\\.ff}", noOfCommits, timer.Elapsed));
                 if (to.IsUndefined)
                     log.Info(string.Format("Rebuild finished on the end {0}", commitProcessed.CommitId));
                 else
                     log.Info(string.Format("Rebuild finished on checkpoint {0}", to));
+                log.Info("Projection statistics" + Environment.NewLine + ProjectionWrapper.GetStatistic(projections, take: 20, takeEvents: 5));
             }
         }
 
-        private void RebuildCommit(ICommit commit, IProjection[] projections, HashSet<IProjection> projectionsWithError)
+        private void RebuildCommit(ICommit commit, ProjectionWrapper[] projections)
         {
-            foreach (var evt in commit.Events)
-            {
-                foreach (IProjection projection in projections)
-                {
-                    try
-                    {
-                        MessageHandlerUtils.HandleIfPossible(projection, (IEvent)evt.Body);
-                    }
-                    catch (Exception ex)
-                    {
-                        projectionsWithError.Add(projection);
-                        log.Error(ex);
-                    }
-                }
-            }
+            foreach (var evt in commit.Events.Select(e => e.Body).OfType<IEvent>())
+                foreach (var projection in projections)
+                    projection.Handle(evt);
         }
     }
 }

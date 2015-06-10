@@ -22,7 +22,7 @@ namespace NEventStore.Cqrs.Impl.Utils.History
             DateTime endDate = DateTime.Parse(end).ToUniversalTime();
             int take = int.Parse(pageSize);
 
-            var commits = es.Advanced.GetFromTo(startDate, endDate).Take(take).Cast<Commit>().ToArray();
+            var commits = es.Advanced.GetFromTo(startDate, endDate).Take(take).Cast<Commit>().Where(e => !e.Headers.ContainsKey("SagaType")).ToArray();
             return JsonConvert.SerializeObject(commits, new JsonSerializerSettings
             {
                 TypeNameHandling = TypeNameHandling.All,

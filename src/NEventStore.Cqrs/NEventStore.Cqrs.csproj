@@ -61,6 +61,7 @@
     <Compile Include="Impl\NullLogger.cs" />
     <Compile Include="CqrsWireup.cs" />
     <Compile Include="CqrsWireupExtensions.cs" />
+    <Compile Include="Impl\Utils\Tasks\ProjectionWrapper.cs" />
     <Compile Include="Projections\ITrackStructureChanges.cs" />
     <Compile Include="Projections\StructureHash.cs" />
     <Compile Include="Projections\IBuferredProjection.cs" />
