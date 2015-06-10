@@ -9,6 +9,11 @@ namespace NEventStore.Cqrs
     {
         protected readonly IRepository repo;
         protected readonly ISagaRepository sagas;
+        internal delegate void OnSagaSaved(EventHandlerBase sender, ISaga saga, IEvent by);
+        /// <summary>
+        /// Don't use it, this is here only for building Saga interaction graph
+        /// </summary>
+        internal static OnSagaSaved OnSavedHook;
 
         protected EventHandlerBase(ISagaRepository sagas)
         {
@@ -22,7 +27,8 @@ namespace NEventStore.Cqrs
 
         protected virtual void Save(ISaga saga, IEvent by, string bucketId = Bucket.Default)
         {
-            if(string.IsNullOrWhiteSpace(saga.Id)) throw new ApplicationException("Saga.Id is not specified");
+            if (string.IsNullOrWhiteSpace(saga.Id)) throw new ApplicationException("Saga.Id is not specified");
+            if (OnSavedHook != null) OnSavedHook(this, saga, by);
             var byTyped = by as DomainEvent;
             foreach (IEvent e in saga.GetUncommittedEvents())
             {

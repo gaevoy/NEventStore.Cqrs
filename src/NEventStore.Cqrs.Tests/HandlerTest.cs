@@ -1,9 +1,11 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+﻿using CommonDomain;
 using NEventStore.Cqrs.Messages;
 using NEventStore.Cqrs.Tests.Mocks;
 using NUnit.Framework;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace NEventStore.Cqrs.Tests
 {
@@ -13,6 +15,13 @@ namespace NEventStore.Cqrs.Tests
         protected SagaRepositoryMock SagaRepository { get; set; }
         protected IdGeneratorMock IdGenerator { get; set; }
         protected CommandBusMock CommandBus { get; set; }
+
+        static HandlerTest()
+        {
+            CommandHandlerBase.OnSavedHook += OnAggregateSaved;
+            EventHandlerBase.OnSavedHook += OnSagaSaved;
+            FlowGraphs.Builder.RedirectConsoleIfAny();
+        }
 
         [SetUp]
         public virtual void Init()
@@ -63,6 +72,24 @@ namespace NEventStore.Cqrs.Tests
         protected override ICollection GetUndispatchedMessages<TCommand>()
         {
             return SagaRepository.SavedSaga.GetUndispatchedMessages();
+        }
+
+        static void OnAggregateSaved(CommandHandlerBase sender, IAggregate aggr, DomainCommand by)
+        {
+            if (by != null && aggr != null)
+                Console.WriteLine("[AGGR] {0} -> {1} -> {2}",
+                    by.GetType().FullName,
+                    aggr.GetType().FullName,
+                    string.Join(", ", aggr.GetUncommittedEvents().OfType<object>().Select(e => e.GetType().FullName)));
+        }
+
+        static void OnSagaSaved(EventHandlerBase sender, ISaga saga, IEvent by)
+        {
+            if (by != null && saga != null)
+                Console.WriteLine("[SAGA] {0} -> {1} -> {2}",
+                    by.GetType().FullName,
+                    saga.GetType().FullName,
+                    string.Join(", ", saga.GetUndispatchedMessages().OfType<object>().Select(e => e.GetType().FullName)));
         }
     }
 }

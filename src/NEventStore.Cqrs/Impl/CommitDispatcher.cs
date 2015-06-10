@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Reflection;
 using NEventStore.Cqrs.Messages;
 using NEventStore.Cqrs.Projections;
 using NEventStore.Dispatcher;
@@ -72,7 +71,8 @@ namespace NEventStore.Cqrs.Impl
 
         protected virtual void SetCheckpoint(ICommit commit)
         {
-            checkpoints.Save(new Checkpoint(Checkpoint.REGULAR, commit));
+            if (commit.BucketId == Bucket.Default)
+                checkpoints.Save(new Checkpoint(Checkpoint.REGULAR, commit));
         }
     }
 }
