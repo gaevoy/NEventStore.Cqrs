@@ -1,4 +1,4 @@
-﻿namespace NEventStore.Cqrs.Projections
+﻿namespace EventStream.Projector
 {
     public interface IProjectionVersioning
     {

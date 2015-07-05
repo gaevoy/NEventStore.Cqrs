@@ -1,8 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.30110.0
-MinimumVisualStudioVersion = 10.0.40219.1
+# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NEventStore.Cqrs", "src\NEventStore.Cqrs\NEventStore.Cqrs.csproj", "{A26D5492-53EE-4783-831C-1F708A478650}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NEventStore.Cqrs.MongoDb", "src\NEventStore.Cqrs.MongoDb\NEventStore.Cqrs.MongoDb.csproj", "{54E48D90-DC93-4BE0-898C-4C76F253426D}"
@@ -31,6 +29,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PetProject.Books.Tests", "examples\PetProject.Books.Tests\PetProject.Books.Tests.csproj", "{0473275B-F33C-47E2-8BE1-DF4C35869A67}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NEventStore.Cqrs.Sqlite", "src\NEventStore.Cqrs.Sqlite\NEventStore.Cqrs.Sqlite.csproj", "{EF9A2C77-90E3-4FB1-AE4F-E51F4544ADFD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventStream.Projector", "EventStream.Projector\EventStream.Projector.csproj", "{F8EF37CE-B0D2-4590-92F9-F57869C07125}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -74,6 +74,10 @@ Global
 		{EF9A2C77-90E3-4FB1-AE4F-E51F4544ADFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EF9A2C77-90E3-4FB1-AE4F-E51F4544ADFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EF9A2C77-90E3-4FB1-AE4F-E51F4544ADFD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8EF37CE-B0D2-4590-92F9-F57869C07125}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8EF37CE-B0D2-4590-92F9-F57869C07125}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8EF37CE-B0D2-4590-92F9-F57869C07125}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8EF37CE-B0D2-4590-92F9-F57869C07125}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -84,6 +88,7 @@ Global
 		{D0DD5375-B55E-4B61-931F-B9695BCCFFB1} = {6EA1FCAF-D720-4E53-B977-B570F2AE49BA}
 		{A26D5492-53EE-4783-831C-1F708A478650} = {6EA1FCAF-D720-4E53-B977-B570F2AE49BA}
 		{EF9A2C77-90E3-4FB1-AE4F-E51F4544ADFD} = {6EA1FCAF-D720-4E53-B977-B570F2AE49BA}
+		{F8EF37CE-B0D2-4590-92F9-F57869C07125} = {6EA1FCAF-D720-4E53-B977-B570F2AE49BA}
 		{7B99B2E4-89F3-4B9B-9532-0D7CF1759654} = {7F87BEB9-3C43-4E1D-8F05-30DABF79B0EB}
 		{9223C1C2-6B0C-488C-92FF-F09036352C01} = {7F87BEB9-3C43-4E1D-8F05-30DABF79B0EB}
 		{65FF954C-90CC-4456-A402-A1224E738B8F} = {7F87BEB9-3C43-4E1D-8F05-30DABF79B0EB}
