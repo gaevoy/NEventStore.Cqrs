@@ -2,7 +2,7 @@
 {
     public enum CheckpointScope
     {
-        Regular, 
+        Default, 
         ProjectionChange
     }
 }

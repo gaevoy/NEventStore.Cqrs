@@ -1,8 +1,8 @@
 ﻿namespace EventStream.Projector
 {
-    public class EventsSlice
+    public struct EventsSlice
     {
-        public string Position { get; set; }
+        public Checkpoint Checkpoint { get; set; }
         public object[] Events { get; set; }
     }
 }

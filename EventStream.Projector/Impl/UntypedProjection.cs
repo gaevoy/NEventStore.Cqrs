@@ -7,22 +7,24 @@ using System.Text;
 
 namespace EventStream.Projector.Impl
 {
-    public class ProjectionWrapper
+    public class UntypedProjection
     {
-        private readonly IProjection projection;
+        private readonly IProjection underlyingProjection;
         private readonly IBuferredProjection buferredProjection;
         private readonly ILog log;
         private Dictionary<Type, Handler> handlers;
         private readonly Stopwatch timer = new Stopwatch();
         private readonly Dictionary<string, ErrorThrottlingContext> loggedError = new Dictionary<string, ErrorThrottlingContext>();
 
-        public ProjectionWrapper(IProjection projection, ILog log)
+        public UntypedProjection(IProjection underlyingProjection, ILog log)
         {
-            this.projection = projection;
-            this.buferredProjection = projection as IBuferredProjection;
+            this.underlyingProjection = underlyingProjection;
+            this.buferredProjection = underlyingProjection as IBuferredProjection;
             this.log = log;
             Init();
         }
+
+        public IProjection UnderlyingProjection { get { return underlyingProjection; } }
 
         public void Begin()
         {
@@ -36,12 +38,12 @@ namespace EventStream.Projector.Impl
                     LogWithThrottling(ex);
                 }
         }
-        
+
         public void Clear()
         {
             try
             {
-                projection.Clear();
+                underlyingProjection.Clear();
             }
             catch (Exception ex)
             {
@@ -58,7 +60,7 @@ namespace EventStream.Projector.Impl
             {
                 try
                 {
-                    handle.Method(projection, new[] { evt });
+                    handle.Method(underlyingProjection, new[] { evt });
                 }
                 catch (Exception ex)
                 {
@@ -83,7 +85,7 @@ namespace EventStream.Projector.Impl
                 }
         }
 
-        public static string GetStatistic(IEnumerable<ProjectionWrapper> projections, int take, int takeEvents = 0)
+        public static string GetStatistic(IEnumerable<UntypedProjection> projections, int take, int takeEvents = 0)
         {
             var projectionStat = (from p in projections
                                   let iterationsCount = p.handlers.Values.Sum(h => h.IterationsCount)
@@ -94,7 +96,7 @@ namespace EventStream.Projector.Impl
                                   select new
                                   {
                                       ProjectionWrapper = p,
-                                      Type = p.projection.GetType(),
+                                      Type = p.underlyingProjection.GetType(),
                                       IterationsCount = iterationsCount,
                                       Mps = mps,
                                       Duration = duration
@@ -126,7 +128,7 @@ namespace EventStream.Projector.Impl
 
         void Init()
         {
-            var projectionType = projection.GetType();
+            var projectionType = underlyingProjection.GetType();
 
             handlers = projectionType.GetMethods(BindingFlags.Instance | BindingFlags.Public)
                 .Where(e => e.Name == "Handle")

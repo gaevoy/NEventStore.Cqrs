@@ -36,23 +36,23 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CheckpointScope.cs" />
+    <Compile Include="Checkpoint.cs" />
     <Compile Include="EventsSlice.cs" />
-    <Compile Include="ICheckpoint.cs" />
+    <Compile Include="ICheckpointStore.cs" />
     <Compile Include="IEventStream.cs" />
     <Compile Include="ILog.cs" />
     <Compile Include="Impl\DelegateFactory.cs" />
     <Compile Include="Impl\NullLog.cs" />
     <Compile Include="Impl\RebuildTask.cs" />
-    <Compile Include="Impl\ProjectionWrapper.cs" />
+    <Compile Include="Impl\UntypedProjection.cs" />
     <Compile Include="Impl\Projector.cs" />
     <Compile Include="IProjector.cs" />
     <Compile Include="IBuferredProjection.cs" />
     <Compile Include="IProjection.cs" />
     <Compile Include="IRebuildTask.cs" />
-    <Compile Include="ITrackStructureChanges.cs" />
-    <Compile Include="IProjectionVersioning.cs" />
+    <Compile Include="IProjectionInfoStore.cs" />
+    <Compile Include="ProjectionInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Wireup.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

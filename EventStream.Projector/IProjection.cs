@@ -2,7 +2,7 @@
 {
     public interface IProjection
     {
-        int Version { get; }
+        string Version { get; }
         void Clear();
     }
 }
