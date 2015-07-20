@@ -55,13 +55,17 @@
     <Compile Include="CqrsMongoWireup.cs" />
     <Compile Include="CqrsMongoWireupExtensions.cs" />
     <Compile Include="PersistHelper.cs" />
-    <Compile Include="Projections\CheckpointProjection.cs" />
-    <Compile Include="Projections\ProjectionCheckpointDto.cs" />
-    <Compile Include="Projections\ProjectionVersionDto.cs" />
-    <Compile Include="Projections\VersioningRepository.cs" />
+    <Compile Include="EventStream.Projector.MongoDb\CheckpointProjection.cs" />
+    <Compile Include="EventStream.Projector.MongoDb\ProjectionCheckpointDto.cs" />
+    <Compile Include="EventStream.Projector.MongoDb\ProjectionVersionDto.cs" />
+    <Compile Include="EventStream.Projector.MongoDb\VersioningRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\EventStream.Projector\EventStream.Projector.csproj">
+      <Project>{f8ef37ce-b0d2-4590-92f9-f57869c07125}</Project>
+      <Name>EventStream.Projector</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NEventStore.Cqrs\NEventStore.Cqrs.csproj">
       <Project>{a26d5492-53ee-4783-831c-1f708a478650}</Project>
       <Name>NEventStore.Cqrs</Name>

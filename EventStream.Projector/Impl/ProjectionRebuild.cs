@@ -16,11 +16,11 @@ namespace EventStream.Projector.Impl
         private readonly ILog log;
         private readonly ICheckpointStore checkpoints;
 
-        public ProjectionRebuild(IProjection[] projections, IProjectionInfoStore versions, ILog log, ICheckpointStore checkpoints)
+        public ProjectionRebuild(IProjection[] projections, ICheckpointStore checkpoints, IProjectionInfoStore versions, ILog log = null)
         {
             this.projections = projections;
             this.versions = versions;
-            this.log = log;
+            this.log = log ?? new NullLog();
             this.checkpoints = checkpoints;
         }
 
@@ -42,18 +42,18 @@ namespace EventStream.Projector.Impl
                 var modifiedProjections = SelectModified(projections);
                 if (modifiedProjections.Any())
                 {
-                    Rebuild(eventStream, ref projectionСhangeCheckpoint, regularCheckpoint, NewProjector(modifiedProjections), Checkpoint.ProjectionChange, running);
+                    Rebuild(eventStream, ref projectionСhangeCheckpoint, regularCheckpoint, NewProjector(modifiedProjections), running);
                     if (running.IsCancellationRequested) return;
                     MarkAsUnmodified(modifiedProjections);
                 }
             }
 
             // 2. Replay commit's tail for all projections
-            Rebuild(eventStream, ref regularCheckpoint, null, NewProjector(projections), Checkpoint.Default, running);
+            Rebuild(eventStream, ref regularCheckpoint, null, NewProjector(projections), running);
             if (running.IsCancellationRequested) return;
 
             // 3. Replay commit's tail again to handle events which was fired during rebuild
-            Rebuild(eventStream, ref regularCheckpoint, null, NewProjector(projections), Checkpoint.Default, running);
+            Rebuild(eventStream, ref regularCheckpoint, null, NewProjector(projections), running);
         }
 
         public string GetChangedProjectionsInfo(bool showEmptyInfo)
@@ -88,7 +88,7 @@ namespace EventStream.Projector.Impl
             return versions.Restore(projections).Any(e => e.Projection.Version != e.Version || e.IsExist == false);
         }
 
-        void Rebuild(IEventStream eventStream, ref Checkpoint? from, Checkpoint? to, SimpleProjector projector, string checkpointScope, CancellationToken running)
+        void Rebuild(IEventStream eventStream, ref Checkpoint? from, Checkpoint? to, SimpleProjector projector, CancellationToken running)
         {
             var commits = eventStream.Read(from);
             commits = FilterByCheckpoints(commits, from, to);
@@ -102,39 +102,24 @@ namespace EventStream.Projector.Impl
             foreach (var projection in projector.projections)
                 projection.Begin();
 
-            Checkpoint? processed = null;
             foreach (var eventsSlice in commits)
             {
                 projector.Handle(eventsSlice);
-                processed = eventsSlice.Checkpoint;
+                from = eventsSlice.Checkpoint;
             }
 
             foreach (var projection in projector.projections)
                 projection.Flush();
-
-            checkpoints.Save(processed, checkpointScope);
-            from = processed;
         }
 
         IEnumerable<EventsSlice> FilterByCheckpoints(IEnumerable<EventsSlice> commits, Checkpoint? from, Checkpoint? to)
         {
-            bool startFound = from == null;
             foreach (var commit in commits)
             {
-                if (!startFound)
-                {
-                    if (from == commit.Checkpoint)
-                    {
-                        startFound = true;
-                    }
-                    continue;
-                }
                 yield return commit;
                 if (to == commit.Checkpoint)
                     yield break;
             }
-            if (!startFound)
-                throw new Exception(string.Format("Checkpoint {0} can not be found. At the end", from));
         }
 
         IEnumerable<EventsSlice> PauseAware(IEnumerable<EventsSlice> commits, Checkpoint? from, Checkpoint? to, CancellationToken running)
@@ -154,9 +139,7 @@ namespace EventStream.Projector.Impl
                 Checkpoint? pos = processed.Value.Checkpoint;
                 var scope = (to == null) ? Checkpoint.Default : Checkpoint.ProjectionChange;
                 if (running.IsCancellationRequested == false && scope == Checkpoint.ProjectionChange)
-                {
                     pos = null;
-                }
                 checkpoints.Save(pos, scope);
             }
         }
@@ -212,7 +195,7 @@ namespace EventStream.Projector.Impl
 
         protected virtual SimpleProjector NewProjector(IProjection[] projections)
         {
-            return new SimpleProjector(projections, log);
+            return new SimpleProjector(projections, log: log);
         }
     }
 }

@@ -2,7 +2,7 @@
 {
     public interface ICheckpointStore
     {
-        void Save(Checkpoint? position, string scope);
+        void Save(Checkpoint? checkpoint, string scope);
         Checkpoint? Restore(string scope);
     }
 }

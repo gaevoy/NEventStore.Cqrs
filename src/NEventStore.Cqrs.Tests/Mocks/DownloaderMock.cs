@@ -1,5 +1,4 @@
 using System;
-using NEventStore.Cqrs.Impl.Utils.History;
 
 namespace NEventStore.Cqrs.Tests.Mocks
 {

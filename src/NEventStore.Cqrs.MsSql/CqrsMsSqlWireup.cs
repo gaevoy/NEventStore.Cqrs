@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Configuration;
 using CommonDomain.Persistence;
+using NEventStore.Cqrs.EventStream.Projector.NEventStore;
 using NEventStore.Cqrs.Impl.Utils;
-using NEventStore.Cqrs.Impl.Utils.History;
 using NEventStore.Cqrs.MsSql.Projections;
 using NEventStore.Cqrs.Projections;
 using NEventStore.Cqrs.Utils;
@@ -26,7 +26,7 @@ namespace NEventStore.Cqrs.MsSql
             Register<IPersistHelper>(_ => new PersistHelper(connectionString))
                 .Register<ICheckpointStore>(_ => new CheckpointStore(readModelsConnectionString))
                 .Register<IVersioningRepository>(_ => new VersioningRepository(readModelsConnectionString))
-                .Register<IHistoryReader>(ioc => new EventStoreHistoryReader(ioc.Resolve<IStoreEvents>()))
+                .Register<IHistoryReader>(ioc => new NEventStoreStream(ioc.Resolve<IStoreEvents>()))
                 .Register<IUtilityTasks>(ioc => new UtilityTasks(ioc.Resolve<ILogger>(),
                     ioc.Resolve<IDependencyResolver>(),
                     ioc.Resolve<IStoreEvents>(),

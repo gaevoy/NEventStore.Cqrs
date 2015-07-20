@@ -10,8 +10,9 @@ namespace EventStream.Projector.Impl
         internal readonly UntypedProjection[] projections;
         private readonly ICheckpointStore checkpoints;
 
-        public SimpleProjector(IEnumerable<IProjection> projections, ILog log, ICheckpointStore checkpoints = null)
+        public SimpleProjector(IEnumerable<IProjection> projections, ICheckpointStore checkpoints = null, ILog log = null)
         {
+            log = log ?? new NullLog();
             this.projections = projections.Select(e => new UntypedProjection(e, log)).ToArray();
             this.checkpoints = checkpoints;
         }

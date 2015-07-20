@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using NEventStore.Cqrs.Impl.Utils.History;
+using NEventStore.Cqrs.EventStream.Projector.NEventStore;
 using NEventStore.Cqrs.Tests.Mocks;
 using NEventStore.Persistence;
 using NUnit.Framework;

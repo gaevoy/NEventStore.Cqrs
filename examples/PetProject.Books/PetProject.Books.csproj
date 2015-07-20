@@ -63,6 +63,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\EventStream.Projector\EventStream.Projector.csproj">
+      <Project>{f8ef37ce-b0d2-4590-92f9-f57869c07125}</Project>
+      <Name>EventStream.Projector</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\NEventStore.Cqrs.MongoDb\NEventStore.Cqrs.MongoDb.csproj">
       <Project>{54e48d90-dc93-4be0-898c-4c76f253426d}</Project>
       <Name>NEventStore.Cqrs.MongoDb</Name>

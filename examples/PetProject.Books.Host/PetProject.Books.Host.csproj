@@ -79,6 +79,8 @@
   <ItemGroup>
     <Compile Include="Endpoints\ApiModule.cs" />
     <Compile Include="Impl\AutofacDependencyResolver.cs" />
+    <Compile Include="Impl\ProjectorIntegration\Log4NetLogger.cs" />
+    <Compile Include="Impl\ProjectorIntegration\ProjectorRegistration.cs" />
     <Compile Include="Impl\NancyBootstrapper.cs" />
     <Compile Include="Impl\ConventionBasedRegistration.cs" />
     <Compile Include="Endpoints\HomeModule.cs" />
@@ -88,6 +90,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\EventStream.Projector\EventStream.Projector.csproj">
+      <Project>{F8EF37CE-B0D2-4590-92F9-F57869C07125}</Project>
+      <Name>EventStream.Projector</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\NEventStore.Cqrs.MongoDb\NEventStore.Cqrs.MongoDb.csproj">
       <Project>{54e48d90-dc93-4be0-898c-4c76f253426d}</Project>
       <Name>NEventStore.Cqrs.MongoDb</Name>

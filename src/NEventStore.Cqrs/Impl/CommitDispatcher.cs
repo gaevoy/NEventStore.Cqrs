@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
+using EventStream.Projector;
 using NEventStore.Cqrs.Messages;
-using NEventStore.Cqrs.Projections;
 using NEventStore.Dispatcher;
 using Newtonsoft.Json;
 
@@ -14,14 +14,14 @@ namespace NEventStore.Cqrs.Impl
         private readonly GenericMethodCaller eventBusPublish;
         private readonly GenericMethodCaller commandBusPublish;
         private readonly ILogger logger;
-        private readonly ICheckpointStore checkpoints;
+        private readonly IProjector projector;
         private readonly object lockObject = new object();
-        public CommitDispatcher(ICommandBus commandBus, IEventBus eventBus, ILogger logger, ICheckpointStore checkpoints)
+        public CommitDispatcher(ICommandBus commandBus, IEventBus eventBus, ILogger logger, IProjector projector)
         {
             this.commandBus = commandBus;
             this.eventBus = eventBus;
             this.logger = logger;
-            this.checkpoints = checkpoints;
+            this.projector = projector;
             eventBusPublish = new GenericMethodCaller(eventBus, "Publish");
             commandBusPublish = new GenericMethodCaller(commandBus, "Publish");
         }
@@ -60,19 +60,10 @@ namespace NEventStore.Cqrs.Impl
                 else
                 {
                     foreach (var evt in commit.Events.Select(e => e.Body))
-                    {
                         eventBusPublish.Call(evt);
-                    }
-
-                    SetCheckpoint(commit);
+                    projector.Handle(new EventsSlice(new Checkpoint(commit.CheckpointToken), commit.Events.Select(e => e.Body)));
                 }
             }
-        }
-
-        protected virtual void SetCheckpoint(ICommit commit)
-        {
-            if (commit.BucketId == Bucket.Default)
-                checkpoints.Save(new Checkpoint(Checkpoint.REGULAR, commit));
         }
     }
 }

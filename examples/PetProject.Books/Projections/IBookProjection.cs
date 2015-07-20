@@ -1,5 +1,5 @@
 ﻿using System;
-using NEventStore.Cqrs;
+using EventStream.Projector;
 
 namespace PetProject.Books.Projections
 {

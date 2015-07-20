@@ -2,8 +2,9 @@
 using CommonDomain;
 using CommonDomain.Core;
 using CommonDomain.Persistence;
+using EventStream.Projector;
+using EventStream.Projector.Persistence;
 using NEventStore.Cqrs.Impl;
-using NEventStore.Cqrs.Projections;
 using NEventStore.Cqrs.Utils;
 using NEventStore.Dispatcher;
 
@@ -16,7 +17,7 @@ namespace NEventStore.Cqrs
         {
         }
 
-        internal protected CqrsWireup(Wireup inner, IDependencyResolver externalContainer, bool enableWriteSide = true, bool enableReadSide = true)
+        internal protected CqrsWireup(Wireup inner, IDependencyResolver externalContainer, IProjector projector, bool enableWriteSide = true, bool enableReadSide = true)
             : base(inner)
         {
             Register<IDependencyResolver>(_ => externalContainer);
@@ -32,7 +33,7 @@ namespace NEventStore.Cqrs
                         ioc.Resolve<IConstructAggregates>(),
                         ioc.Resolve<IDetectConflicts>()));
                 Register<ISagaRepository>(ioc => new Impl.SagaEventStoreRepository(ioc.Resolve<IStoreEvents>()));
-                Register<IDispatchCommits>(ioc => new CommitDispatcher(ioc.Resolve<ICommandBus>(), ioc.Resolve<IEventBus>(), ioc.Resolve<ILogger>(), ioc.Resolve<ICheckpointStore>()));
+                Register<IDispatchCommits>(ioc => new CommitDispatcher(ioc.Resolve<ICommandBus>(), ioc.Resolve<IEventBus>(), ioc.Resolve<ILogger>(), projector));
                 Register<ICommandBus>(ioc => new CommandBusIoCBased(externalContainer, ioc.Resolve<ILogger>()));
                 if (enableReadSide == false)
                 {
@@ -67,12 +68,6 @@ namespace NEventStore.Cqrs
         {
             RegisterSingleton(ctor);
             return this;
-        }
-
-        public override IStoreEvents Build()
-        {
-            Container.Resolve<ICheckpointStore>().EnsureInitialized();
-            return base.Build();
         }
 
         void Register<T>(Func<NanoContainer, T> func) where T : class

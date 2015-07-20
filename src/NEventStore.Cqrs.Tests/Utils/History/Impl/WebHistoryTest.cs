@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Text.RegularExpressions;
-using NEventStore.Cqrs.Impl.Utils.History;
 using NEventStore.Cqrs.Messages;
 using NEventStore.Cqrs.Tests.Mocks;
 using NEventStore.Persistence;

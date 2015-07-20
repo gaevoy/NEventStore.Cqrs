@@ -1,8 +1,7 @@
-﻿using MongoDB.Driver;
+﻿using EventStream.Projector;
+using MongoDB.Driver;
 using MongoDB.Driver.Builders;
 using MongoDB.Driver.Linq;
-using NEventStore.Cqrs;
-using NEventStore.Cqrs.Projections;
 using PetProject.Books.Domain;
 using PetProject.Books.Shared.Events;
 using System;
@@ -10,10 +9,7 @@ using System.Linq;
 
 namespace PetProject.Books.Projections.Impl
 {
-    class BookProjection : IBookProjection, IBookUniquenessChecker, ITrackStructureChanges,
-        IHandler<BookRegistered>,
-        IHandler<BookCorrected>,
-        IHandler<BookDeleted>
+    class BookProjection : IBookProjection, IBookUniquenessChecker
     {
         private readonly MongoCollection<BookDto> books;
 
@@ -23,8 +19,7 @@ namespace PetProject.Books.Projections.Impl
             books = db.GetCollection<BookDto>("Books");
         }
 
-        public int Version { get { return 0; } }
-        public Type[] TrackTypes { get { return new[] { typeof(BookDto) }; } }
+        public string Version { get { return 0 + this.StructureHash(typeof(BookDto)); } }
 
         public void Clear()
         {

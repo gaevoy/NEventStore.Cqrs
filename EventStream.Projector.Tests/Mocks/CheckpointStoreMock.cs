@@ -7,9 +7,9 @@ namespace EventStream.Projector.Tests.Mocks
     {
         readonly ConcurrentDictionary<string, Checkpoint?> db = new ConcurrentDictionary<string, Checkpoint?>();
 
-        public void Save(Checkpoint? position, string scope)
+        public void Save(Checkpoint? checkpoint, string scope)
         {
-            db[scope] = position;
+            db[scope] = checkpoint;
         }
 
         public Checkpoint? Restore(string scope)

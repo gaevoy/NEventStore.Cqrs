@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using NEventStore.Cqrs.Utils.History;
 using NEventStore.Persistence;
 
-namespace NEventStore.Cqrs.Impl.Utils.History
+namespace NEventStore.Cqrs.EventStream.Projector.NEventStore
 {
-    public class CompositeHistoryReader : IHistoryReader
+ /*   public class CompositeHistoryReader : IHistoryReader
     {
         private readonly IHistoryReader[] readers;
 
@@ -72,5 +71,5 @@ namespace NEventStore.Cqrs.Impl.Utils.History
             }
             return minPosition;
         }
-    }
+    }*/
 }

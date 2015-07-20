@@ -1,14 +1,17 @@
 ﻿using Autofac;
+using EventStream.Projector;
 using Mono.Unix;
 using Mono.Unix.Native;
 using Nancy.Hosting.Self;
 using NEventStore;
 using NEventStore.Cqrs;
+using NEventStore.Cqrs.EventStream.Projector.NEventStore;
 using NEventStore.Cqrs.Impl;
 using NEventStore.Cqrs.MongoDb;
-using NEventStore.Cqrs.Utils;
+using NEventStore.Cqrs.MongoDb.EventStream.Projector.MongoDb;
 using NEventStore.Serialization;
 using PetProject.Books.Host.Impl;
+using PetProject.Books.Host.Impl.ProjectorIntegration;
 using PetProject.Books.Projections;
 using PetProject.Books.Shared.Events;
 using System;
@@ -27,6 +30,7 @@ namespace PetProject.Books.Host
 
             var builder = new ContainerBuilder();
             builder.RegisterModule(new ConventionBasedRegistration(appAssemblies, readConnectionStringName));
+            builder.RegisterModule(new ProjectorRegistration(readConnectionStringName));
             var ioc = builder.Build();
 
             var es = Wireup.Init()
@@ -37,13 +41,13 @@ namespace PetProject.Books.Host
                 .WithConvertersFrom(appAssemblies)
                 .UsingAsynchronousDispatchScheduler()
                 //.UsingSynchronousDispatchScheduler()
-                .UsingCqrs(new AutofacDependencyResolver(ioc))
+                .UsingCqrs(new AutofacDependencyResolver(ioc), ioc.Resolve<IProjector>())
                 .WithAggregateFactory(c => new AggregateFactoryHeaderBased(appAssemblies))
                 .WithLogger(_ => new Log4NetLogger())
-                .WithMongo(writeConnectionStringName, readConnectionStringName, appAssemblies)
+                .WithMongo(writeConnectionStringName, appAssemblies)
                 .Build();
 
-            ioc.Resolve<IUtilityTasks>().RebuildProjections();
+            ioc.Resolve<IProjectionRebuild>().Start(new NEventStoreStream(es), CancellationToken.None);
 
             var uri = "http://localhost:8080";
             Console.WriteLine(uri);

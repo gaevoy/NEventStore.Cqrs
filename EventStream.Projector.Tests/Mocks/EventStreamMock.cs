@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace EventStream.Projector.Tests.Mocks
 {
@@ -11,19 +12,23 @@ namespace EventStream.Projector.Tests.Mocks
             this.stream = stream;
         }
 
-        public IEnumerable<EventsSlice> Read(Checkpoint? fromCheckpoint)
+        public IEnumerable<EventsSlice> Read(Checkpoint? from)
         {
-            return stream;
-            /*bool found = false;
-            foreach (var eventsSlice in stream)
+            bool startFound = from == null;
+            foreach (var commit in stream)
             {
-                if (fromCheckpoint == null)
-                    yield return eventsSlice;
-                else if (eventsSlice.Checkpoint.Position == fromCheckpoint.Value.Position)
-                    found = true;
-                else if (found)
-                    yield return eventsSlice;
-            }*/
+                if (!startFound)
+                {
+                    if (from == commit.Checkpoint)
+                    {
+                        startFound = true;
+                    }
+                    continue;
+                }
+                yield return commit;
+            }
+            if (!startFound)
+                throw new Exception(string.Format("Checkpoint {0} can not be found. At the end", from));
         }
     }
 }

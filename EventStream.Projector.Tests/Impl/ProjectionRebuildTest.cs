@@ -57,9 +57,11 @@ namespace EventStream.Projector.Tests.Impl
 
             // When
             NewRebuild().Start(new LocalEventStream(history), CancellationToken.None);
+            var cp = checkpoints.Restore(Checkpoint.ProjectionChange);
 
             // Then
             Assert.That(projection.Handled, Is.EqualTo(new[] { 11, 22, 33, 44, 55 }));
+            Assert.IsNull(cp);
         }
 
         [Test]
@@ -159,7 +161,7 @@ namespace EventStream.Projector.Tests.Impl
 
         ProjectionRebuild NewRebuild()
         {
-            return new ProjectionRebuild(new[] { projection }, versions, new ConsoleLog(), checkpoints);
+            return new ProjectionRebuild(new[] { projection }, checkpoints, versions, new ConsoleLog());
         }
 
         EventsSlice NewEvent(int id)
