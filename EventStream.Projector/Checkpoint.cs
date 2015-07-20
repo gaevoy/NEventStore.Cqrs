@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 
 namespace EventStream.Projector
 {
@@ -7,11 +8,11 @@ namespace EventStream.Projector
     {
         public const string Default = "Default";
         public const string ProjectionChange = "ProjectionChange";
-
         public readonly string Position;
 
         public Checkpoint(string position)
         {
+            if (position == null) throw new ArgumentNullException("position");
             Position = position;
         }
 
@@ -44,6 +45,21 @@ namespace EventStream.Projector
         public static bool operator !=(Checkpoint a, Checkpoint b)
         {
             return !a.Equals(b);
+        }
+
+        public static implicit operator string(Checkpoint checkpoint)
+        {
+            return checkpoint.Position;
+        }
+
+        public static implicit operator string(Checkpoint? checkpoint)
+        {
+            return checkpoint == null ? null : checkpoint.Value.Position;
+        }
+
+        public static implicit operator Checkpoint?(string position)
+        {
+            return position == null ? (Checkpoint?)null : new Checkpoint(position);
         }
     }
 }

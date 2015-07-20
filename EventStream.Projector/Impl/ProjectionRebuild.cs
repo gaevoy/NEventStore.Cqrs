@@ -26,7 +26,7 @@ namespace EventStream.Projector.Impl
 
         public void Start(IEventStream eventStream, CancellationToken running)
         {
-            if (running.IsCancellationRequested) return;
+            if (running.IsCancellationRequested || !projections.Any()) return;
 
             var projectionСhangeCheckpoint = checkpoints.Restore(Checkpoint.ProjectionChange);
             var regularCheckpoint = checkpoints.Restore(Checkpoint.Default);
@@ -49,11 +49,12 @@ namespace EventStream.Projector.Impl
             }
 
             // 2. Replay commit's tail for all projections
-            Rebuild(eventStream, ref regularCheckpoint, null, NewProjector(projections), running);
+            SimpleProjector projector = NewProjector(projections);
+            Rebuild(eventStream, ref regularCheckpoint, null, projector, running);
             if (running.IsCancellationRequested) return;
 
             // 3. Replay commit's tail again to handle events which was fired during rebuild
-            Rebuild(eventStream, ref regularCheckpoint, null, NewProjector(projections), running);
+            Rebuild(eventStream, ref regularCheckpoint, null, projector, running);
         }
 
         public string GetChangedProjectionsInfo(bool showEmptyInfo)
@@ -124,23 +125,22 @@ namespace EventStream.Projector.Impl
 
         IEnumerable<EventsSlice> PauseAware(IEnumerable<EventsSlice> commits, Checkpoint? from, Checkpoint? to, CancellationToken running)
         {
-            EventsSlice? processed = null;
+            Checkpoint? processed = null;
             foreach (var commit in commits)
             {
                 yield return commit;
 
-                processed = commit;
+                processed = commit.Checkpoint;
                 if (running.IsCancellationRequested)
                     break;
             }
 
-            if (processed.HasValue)
+            if (processed != null)
             {
-                Checkpoint? pos = processed.Value.Checkpoint;
                 var scope = (to == null) ? Checkpoint.Default : Checkpoint.ProjectionChange;
                 if (running.IsCancellationRequested == false && scope == Checkpoint.ProjectionChange)
-                    pos = null;
-                checkpoints.Save(pos, scope);
+                    processed = null;
+                checkpoints.Save(processed, scope);
             }
         }
 

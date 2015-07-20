@@ -13,11 +13,9 @@ namespace NEventStore.Cqrs.EventStream.Projector.NEventStore
             this.es = es;
         }
 
-        public IEnumerable<EventsSlice> Read(Checkpoint? fromCheckpoint)
+        public IEnumerable<EventsSlice> Read(Checkpoint? from)
         {
-            return es.Advanced.GetFrom(fromCheckpoint == null ? null : fromCheckpoint.Value.Position)
-                .Where(e => !e.Headers.ContainsKey("SagaType"))
-                .Select(Map);
+            return es.Advanced.GetFrom(from).Where(e => !e.Headers.ContainsKey("SagaType")).Select(Map);
         }
 
         EventsSlice Map(ICommit commit)
