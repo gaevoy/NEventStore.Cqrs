@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using EventStream.Projector.Logger;
+using EventStream.Projector.Persistence;
 
 namespace EventStream.Projector.Impl
 {
@@ -29,8 +31,8 @@ namespace EventStream.Projector.Impl
         {
             if (running.IsCancellationRequested) return;
 
-            var projectionСhangeCheckpoint = checkpoints.Restore(CheckpointScope.ProjectionChange);
-            var regularCheckpoint = checkpoints.Restore(CheckpointScope.Default);
+            var projectionСhangeCheckpoint = checkpoints.Restore(Checkpoint.ProjectionChange);
+            var regularCheckpoint = checkpoints.Restore(Checkpoint.Default);
 
             // If regular checkpoint is undefined rebuild all projections
             if (regularCheckpoint == null)
@@ -43,23 +45,23 @@ namespace EventStream.Projector.Impl
                 var modifiedProjections = SelectModified(projections);
                 if (modifiedProjections.Any())
                 {
-                    Rebuild(projectionСhangeCheckpoint, regularCheckpoint, NewProjector(modifiedProjections), CheckpointScope.ProjectionChange);
+                    Rebuild(projectionСhangeCheckpoint, regularCheckpoint, NewProjector(modifiedProjections), Checkpoint.ProjectionChange);
                     if (running.IsCancellationRequested) return;
                     MarkAsUnmodified(modifiedProjections);
                 }
             }
 
             // 2. Replay commit's tail for all projections
-            Rebuild(regularCheckpoint, null, NewProjector(projections), CheckpointScope.Default);
+            Rebuild(regularCheckpoint, null, NewProjector(projections), Checkpoint.Default);
             if (running.IsCancellationRequested) return;
 
             // 3. Replay commit's tail again to handle events which was fired during rebuild
-            Rebuild(regularCheckpoint, null, NewProjector(projections), CheckpointScope.Default);
+            Rebuild(regularCheckpoint, null, NewProjector(projections), Checkpoint.Default);
         }
 
         void MarkAsUnmodified(IEnumerable<IProjection> projections)
         {
-            versions.Save(projections.Select(e => new ProjectionInfo { Name = e.GetType().FullName, IsExist = false }).ToArray());
+            versions.Save(projections.Select(e => new ProjectionInfo(name: e.GetType().FullName, version: e.Version, isExist: true)).ToArray());
         }
 
         private IProjection[] SelectModified(IProjection[] projections)
@@ -74,7 +76,7 @@ namespace EventStream.Projector.Impl
                     select projection).ToArray();
         }
 
-        void Rebuild(Checkpoint? fromCheckpoint, Checkpoint? toCheckpoint, Projector projector, CheckpointScope checkpointScope)
+        void Rebuild(Checkpoint? fromCheckpoint, Checkpoint? toCheckpoint, SimpleProjector projector, string checkpointScope)
         {
             string from = fromCheckpoint.HasValue ? fromCheckpoint.Value.Position : null;
             string to = toCheckpoint.HasValue ? toCheckpoint.Value.Position : null;
@@ -139,8 +141,8 @@ namespace EventStream.Projector.Impl
             if (processed.HasValue)
             {
                 Checkpoint? pos = processed.Value.Checkpoint;
-                var scope = (to == null) ? CheckpointScope.Default : CheckpointScope.ProjectionChange;
-                if (running.IsCancellationRequested == false && scope == CheckpointScope.ProjectionChange)
+                var scope = (to == null) ? Checkpoint.Default : Checkpoint.ProjectionChange;
+                if (running.IsCancellationRequested == false && scope == Checkpoint.ProjectionChange)
                 {
                     pos = null;
                 }
@@ -183,9 +185,9 @@ namespace EventStream.Projector.Impl
             }
         }
 
-        protected virtual Projector NewProjector(IProjection[] projections)
+        protected virtual SimpleProjector NewProjector(IProjection[] projections)
         {
-            return new Projector(projections, log);
+            return new SimpleProjector(projections, log);
         }
     }
 }

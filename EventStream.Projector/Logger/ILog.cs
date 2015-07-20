@@ -1,5 +1,6 @@
 ﻿using System;
-namespace EventStream.Projector
+
+namespace EventStream.Projector.Logger
 {
     public interface ILog
     {

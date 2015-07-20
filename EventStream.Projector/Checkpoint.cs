@@ -2,6 +2,14 @@
 {
     public struct Checkpoint
     {
-        public string Position { get; set; }
+        public const string Default = "Default";
+        public const string ProjectionChange = "ProjectionChange"; 
+
+        public readonly string Position;
+
+        public Checkpoint(string position)
+        {
+            Position = position;
+        }
     }
 }

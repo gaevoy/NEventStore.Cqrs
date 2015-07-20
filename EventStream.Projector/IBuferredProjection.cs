@@ -1,6 +1,6 @@
 ﻿namespace EventStream.Projector
 {
-    public interface IBuferredProjection
+    public interface IBuferredProjection : IProjector
     {
         void Begin();
         void Flush();

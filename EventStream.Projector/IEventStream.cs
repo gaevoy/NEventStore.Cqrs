@@ -4,6 +4,6 @@ namespace EventStream.Projector
 {
     public interface IEventStream
     {
-        IEnumerable<EventsSlice> Read(Checkpoint? checkpoint);
+        IEnumerable<EventsSlice> Read(Checkpoint? fromCheckpoint);
     }
 }

@@ -35,14 +35,13 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CheckpointScope.cs" />
     <Compile Include="Checkpoint.cs" />
     <Compile Include="EventsSlice.cs" />
-    <Compile Include="ICheckpointStore.cs" />
+    <Compile Include="Persistence\ICheckpointStore.cs" />
     <Compile Include="IEventStream.cs" />
-    <Compile Include="ILog.cs" />
+    <Compile Include="Logger\ILog.cs" />
     <Compile Include="Impl\DelegateFactory.cs" />
-    <Compile Include="Impl\NullLog.cs" />
+    <Compile Include="Logger\NullLog.cs" />
     <Compile Include="Impl\RebuildTask.cs" />
     <Compile Include="Impl\UntypedProjection.cs" />
     <Compile Include="Impl\Projector.cs" />
@@ -50,8 +49,8 @@
     <Compile Include="IBuferredProjection.cs" />
     <Compile Include="IProjection.cs" />
     <Compile Include="IRebuildTask.cs" />
-    <Compile Include="IProjectionInfoStore.cs" />
-    <Compile Include="ProjectionInfo.cs" />
+    <Compile Include="Persistence\IProjectionInfoStore.cs" />
+    <Compile Include="Persistence\ProjectionInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

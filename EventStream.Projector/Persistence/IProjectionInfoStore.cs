@@ -1,4 +1,4 @@
-﻿namespace EventStream.Projector
+﻿namespace EventStream.Projector.Persistence
 {
     public interface IProjectionInfoStore
     {

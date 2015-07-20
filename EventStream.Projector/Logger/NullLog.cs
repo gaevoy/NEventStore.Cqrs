@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace EventStream.Projector.Impl
+namespace EventStream.Projector.Logger
 {
     public class NullLog : ILog
     {
