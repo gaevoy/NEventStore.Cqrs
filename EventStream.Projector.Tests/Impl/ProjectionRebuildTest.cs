@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using EventStream.Projector.Impl;
-using EventStream.Projector.Logger;
 using EventStream.Projector.Persistence;
 using EventStream.Projector.Tests.Mocks;
 using NUnit.Framework;
