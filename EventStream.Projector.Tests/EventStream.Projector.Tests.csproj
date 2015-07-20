@@ -1,16 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{F8EF37CE-B0D2-4590-92F9-F57869C07125}</ProjectGuid>
+    <ProjectGuid>{56B286A0-7105-4A57-9292-970CCD7BF819}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>EventStream.Projector</RootNamespace>
-    <AssemblyName>EventStream.Projector</AssemblyName>
+    <RootNamespace>EventStream.Projector.Tests</RootNamespace>
+    <AssemblyName>EventStream.Projector.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -30,30 +32,38 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="nunit.framework">
+      <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Checkpoint.cs" />
-    <Compile Include="EventsSlice.cs" />
-    <Compile Include="Persistence\ICheckpointStore.cs" />
-    <Compile Include="IEventStream.cs" />
-    <Compile Include="Logger\ILog.cs" />
-    <Compile Include="Impl\DelegateFactory.cs" />
-    <Compile Include="Logger\NullLog.cs" />
-    <Compile Include="Impl\ProjectionRebuild.cs" />
-    <Compile Include="Impl\UntypedProjection.cs" />
-    <Compile Include="Impl\Projector.cs" />
-    <Compile Include="IProjector.cs" />
-    <Compile Include="IBuferredProjection.cs" />
-    <Compile Include="IProjection.cs" />
-    <Compile Include="IProjectionRebuild.cs" />
-    <Compile Include="Persistence\IProjectionInfoStore.cs" />
-    <Compile Include="Persistence\ProjectionInfo.cs" />
+    <Compile Include="Impl\ProjectionRebuildTest.cs" />
+    <Compile Include="Mocks\EventStreamMock.cs" />
+    <Compile Include="Mocks\ProjectionInfoStoreMock.cs" />
+    <Compile Include="Mocks\CheckpointStoreMock.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\EventStream.Projector\EventStream.Projector.csproj">
+      <Project>{f8ef37ce-b0d2-4590-92f9-f57869c07125}</Project>
+      <Name>EventStream.Projector</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

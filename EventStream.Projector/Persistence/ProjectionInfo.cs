@@ -2,13 +2,13 @@ namespace EventStream.Projector.Persistence
 {
     public struct ProjectionInfo
     {
-        public readonly string Name;
+        public readonly IProjection Projection;
         public readonly string Version;
         public readonly bool IsExist;
 
-        public ProjectionInfo(string name, string version, bool isExist)
+        public ProjectionInfo(IProjection projection, string version, bool isExist)
         {
-            Name = name;
+            Projection = projection;
             Version = version;
             IsExist = isExist;
         }

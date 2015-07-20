@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace EventStream.Projector
 {
+    [DebuggerDisplay("EventsSlice (Checkpoint = {Checkpoint.Position})")]
     public struct EventsSlice
     {
         public readonly Checkpoint Checkpoint;

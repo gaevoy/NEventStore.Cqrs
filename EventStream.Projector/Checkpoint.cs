@@ -1,5 +1,8 @@
-﻿namespace EventStream.Projector
+﻿using System.Diagnostics;
+
+namespace EventStream.Projector
 {
+    [DebuggerDisplay("Checkpoint (Position = {Position})")]
     public struct Checkpoint
     {
         public const string Default = "Default";

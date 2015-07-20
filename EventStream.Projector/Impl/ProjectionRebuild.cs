@@ -2,32 +2,29 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using EventStream.Projector.Logger;
 using EventStream.Projector.Persistence;
 
 namespace EventStream.Projector.Impl
 {
-    class RebuildTask : IRebuildTask
+    public class ProjectionRebuild : IProjectionRebuild
     {
         private readonly IProjection[] projections;
         private readonly IProjectionInfoStore versions;
-        private readonly IEventStream eventStream;
         private readonly ILog log;
         private readonly ICheckpointStore checkpoints;
-        private readonly CancellationToken running;
 
-        public RebuildTask(IProjection[] projections, IProjectionInfoStore versions, IEventStream eventStream, ILog log, ICheckpointStore checkpoints, CancellationToken running)
+        public ProjectionRebuild(IProjection[] projections, IProjectionInfoStore versions, ILog log, ICheckpointStore checkpoints)
         {
             this.projections = projections;
             this.versions = versions;
-            this.eventStream = eventStream;
             this.log = log;
             this.checkpoints = checkpoints;
-            this.running = running;
         }
 
-        public void Start()
+        public void Start(IEventStream eventStream, CancellationToken running)
         {
             if (running.IsCancellationRequested) return;
 
@@ -45,44 +42,59 @@ namespace EventStream.Projector.Impl
                 var modifiedProjections = SelectModified(projections);
                 if (modifiedProjections.Any())
                 {
-                    Rebuild(projectionСhangeCheckpoint, regularCheckpoint, NewProjector(modifiedProjections), Checkpoint.ProjectionChange);
+                    Rebuild(eventStream, ref projectionСhangeCheckpoint, regularCheckpoint, NewProjector(modifiedProjections), Checkpoint.ProjectionChange, running);
                     if (running.IsCancellationRequested) return;
                     MarkAsUnmodified(modifiedProjections);
                 }
             }
 
             // 2. Replay commit's tail for all projections
-            Rebuild(regularCheckpoint, null, NewProjector(projections), Checkpoint.Default);
+            Rebuild(eventStream, ref regularCheckpoint, null, NewProjector(projections), Checkpoint.Default, running);
             if (running.IsCancellationRequested) return;
 
             // 3. Replay commit's tail again to handle events which was fired during rebuild
-            Rebuild(regularCheckpoint, null, NewProjector(projections), Checkpoint.Default);
+            Rebuild(eventStream, ref regularCheckpoint, null, NewProjector(projections), Checkpoint.Default, running);
         }
 
-        void MarkAsUnmodified(IEnumerable<IProjection> projections)
+        public string GetChangedProjectionsInfo(bool showEmptyInfo)
         {
-            versions.Save(projections.Select(e => new ProjectionInfo(name: e.GetType().FullName, version: e.Version, isExist: true)).ToArray());
+            var text = new StringBuilder();
+
+            var info = versions.Restore(projections);
+
+            if (info.All(e => !e.IsExist))
+            {
+                text.AppendLine("Information about version is absent. All projections will be rebuilt");
+            }
+            else
+            {
+                var changed = info.Where(e => e.Projection.Version != e.Version || e.IsExist == false).ToArray();
+                if (changed.Any())
+                {
+                    text.AppendFormat("Changed projections to rebuild: ").AppendLine();
+                    foreach (var projectionInfo in changed)
+                        text.AppendLine(projectionInfo.Projection.GetType().FullName);
+                }
+                else if (showEmptyInfo)
+                {
+                    text.Append("Nothing to rebuild");
+                }
+            }
+            return text.ToString();
         }
 
-        private IProjection[] SelectModified(IProjection[] projections)
+        public bool IsRequired()
         {
-            var version = versions.Restore(projections.Select(e => e.GetType().FullName).ToArray())
-                .Where(e => e.IsExist)
-                .ToDictionary(e => e.Name, e => e);
-            ProjectionInfo info;
-            return (from projection in projections
-                    let name = projection.GetType().FullName
-                    where version.TryGetValue(name, out info) && info.IsExist && info.Version == projection.Version
-                    select projection).ToArray();
+            return versions.Restore(projections).Any(e => e.Projection.Version != e.Version || e.IsExist == false);
         }
 
-        void Rebuild(Checkpoint? fromCheckpoint, Checkpoint? toCheckpoint, SimpleProjector projector, string checkpointScope)
+        void Rebuild(IEventStream eventStream, ref Checkpoint? fromCheckpoint, Checkpoint? toCheckpoint, SimpleProjector projector, string checkpointScope, CancellationToken running)
         {
             string from = fromCheckpoint.HasValue ? fromCheckpoint.Value.Position : null;
             string to = toCheckpoint.HasValue ? toCheckpoint.Value.Position : null;
             var commits = eventStream.Read(fromCheckpoint);
             commits = FilterByCheckpoints(commits, from, to);
-            commits = PauseAware(commits, from, to);
+            commits = PauseAware(commits, from, to, running);
             commits = ShowLogs(commits, from, to);
 
             if (from == null)
@@ -103,6 +115,7 @@ namespace EventStream.Projector.Impl
                 projection.Flush();
 
             checkpoints.Save(processedCheckpoint, checkpointScope);
+            fromCheckpoint = processedCheckpoint;
         }
 
         IEnumerable<EventsSlice> FilterByCheckpoints(IEnumerable<EventsSlice> commits, string from, string to)
@@ -126,7 +139,7 @@ namespace EventStream.Projector.Impl
                 throw new Exception(string.Format("Checkpoint {0} can not be found. At the end", from));
         }
 
-        IEnumerable<EventsSlice> PauseAware(IEnumerable<EventsSlice> commits, string from, string to)
+        IEnumerable<EventsSlice> PauseAware(IEnumerable<EventsSlice> commits, string from, string to, CancellationToken running)
         {
             EventsSlice? processed = null;
             foreach (var commit in commits)
@@ -183,6 +196,20 @@ namespace EventStream.Projector.Impl
                 else
                     log.Info(string.Format("Rebuild finished on checkpoint {0}", to));
             }
+        }
+
+
+        void MarkAsUnmodified(IEnumerable<IProjection> projections)
+        {
+            versions.Save(projections.Select(e => new ProjectionInfo(projection: e, version: e.Version, isExist: true)).ToArray());
+        }
+
+        IProjection[] SelectModified(IProjection[] projections)
+        {
+            return versions.Restore(projections)
+                .Where(e => e.Projection.Version != e.Version || e.IsExist == false)
+                .Select(e => e.Projection)
+                .ToArray();
         }
 
         protected virtual SimpleProjector NewProjector(IProjection[] projections)
