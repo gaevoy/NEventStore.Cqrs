@@ -48,6 +48,9 @@
   <ItemGroup>
     <Compile Include="EventHandlerBase.cs" />
     <Compile Include="CommandHandlerBase.cs" />
+    <Compile Include="EventStream.Projector.NEventStore\Legacy\NEventStoreProjectorHook.cs" />
+    <Compile Include="EventStream.Projector.NEventStore\NEventStoreProjectorHook.cs" />
+    <Compile Include="EventStream.Projector.NEventStore\Legacy\NEventStoreStream.cs" />
     <Compile Include="IConstructAggregates.cs" />
     <Compile Include="Impl\AggregateFactoryHeaderBased.cs" />
     <Compile Include="Impl\AggregateFactory.cs" />
@@ -78,8 +81,7 @@
     <Compile Include="Messages\IEvent.cs" />
     <Compile Include="Messages\IMessage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="EventStream.Projector.NEventStore\CompositeHistoryReader.cs" />
-    <Compile Include="EventStream.Projector.NEventStore\EventStoreHistoryReader.cs" />
+    <Compile Include="EventStream.Projector.NEventStore\NEventStoreStream.cs" />
     <Compile Include="Impl\Utils\Tasks\CheckEventStoreTask.cs" />
     <Compile Include="Impl\Utils\Tasks\ClearSnapshotTask.cs" />
     <Compile Include="Impl\Utils\Tasks\RebuildSnapshotTask.cs" />

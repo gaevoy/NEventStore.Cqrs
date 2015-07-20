@@ -14,14 +14,12 @@ namespace NEventStore.Cqrs.Impl
         private readonly GenericMethodCaller eventBusPublish;
         private readonly GenericMethodCaller commandBusPublish;
         private readonly ILogger logger;
-        private readonly IProjector projector;
         private readonly object lockObject = new object();
-        public CommitDispatcher(ICommandBus commandBus, IEventBus eventBus, ILogger logger, IProjector projector)
+        public CommitDispatcher(ICommandBus commandBus, IEventBus eventBus, ILogger logger)
         {
             this.commandBus = commandBus;
             this.eventBus = eventBus;
             this.logger = logger;
-            this.projector = projector;
             eventBusPublish = new GenericMethodCaller(eventBus, "Publish");
             commandBusPublish = new GenericMethodCaller(commandBus, "Publish");
         }
@@ -61,7 +59,6 @@ namespace NEventStore.Cqrs.Impl
                 {
                     foreach (var evt in commit.Events.Select(e => e.Body))
                         eventBusPublish.Call(evt);
-                    projector.Handle(new EventsSlice(new Checkpoint(commit.CheckpointToken), commit.Events.Select(e => e.Body)));
                 }
             }
         }

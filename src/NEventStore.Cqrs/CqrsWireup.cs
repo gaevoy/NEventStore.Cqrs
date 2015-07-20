@@ -17,7 +17,7 @@ namespace NEventStore.Cqrs
         {
         }
 
-        internal protected CqrsWireup(Wireup inner, IDependencyResolver externalContainer, IProjector projector, bool enableWriteSide = true, bool enableReadSide = true)
+        internal protected CqrsWireup(Wireup inner, IDependencyResolver externalContainer, bool enableWriteSide = true, bool enableReadSide = true)
             : base(inner)
         {
             Register<IDependencyResolver>(_ => externalContainer);
@@ -33,7 +33,7 @@ namespace NEventStore.Cqrs
                         ioc.Resolve<IConstructAggregates>(),
                         ioc.Resolve<IDetectConflicts>()));
                 Register<ISagaRepository>(ioc => new Impl.SagaEventStoreRepository(ioc.Resolve<IStoreEvents>()));
-                Register<IDispatchCommits>(ioc => new CommitDispatcher(ioc.Resolve<ICommandBus>(), ioc.Resolve<IEventBus>(), ioc.Resolve<ILogger>(), projector));
+                Register<IDispatchCommits>(ioc => new CommitDispatcher(ioc.Resolve<ICommandBus>(), ioc.Resolve<IEventBus>(), ioc.Resolve<ILogger>()));
                 Register<ICommandBus>(ioc => new CommandBusIoCBased(externalContainer, ioc.Resolve<ILogger>()));
                 if (enableReadSide == false)
                 {

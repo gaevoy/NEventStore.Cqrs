@@ -10,7 +10,7 @@ namespace NEventStore.Cqrs.MongoDb.EventStream.Projector.MongoDb
         private readonly MongoCollection<ProjectionVersionDto> collection;
         public ProjectionInfoStore(string connectionString)
         {
-            collection = GetDatabase(connectionString).GetCollection<ProjectionVersionDto>("_ProjectionInfoStore");
+            collection = GetDatabase(connectionString).GetCollection<ProjectionVersionDto>("_Projections");
         }
 
         public void Save(params ProjectionInfo[] projection)

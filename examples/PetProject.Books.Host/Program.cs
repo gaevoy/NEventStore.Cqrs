@@ -8,7 +8,6 @@ using NEventStore.Cqrs;
 using NEventStore.Cqrs.EventStream.Projector.NEventStore;
 using NEventStore.Cqrs.Impl;
 using NEventStore.Cqrs.MongoDb;
-using NEventStore.Cqrs.MongoDb.EventStream.Projector.MongoDb;
 using NEventStore.Serialization;
 using PetProject.Books.Host.Impl;
 using PetProject.Books.Host.Impl.ProjectorIntegration;
@@ -41,13 +40,15 @@ namespace PetProject.Books.Host
                 .WithConvertersFrom(appAssemblies)
                 .UsingAsynchronousDispatchScheduler()
                 //.UsingSynchronousDispatchScheduler()
-                .UsingCqrs(new AutofacDependencyResolver(ioc), ioc.Resolve<IProjector>())
+                .UsingCqrs(new AutofacDependencyResolver(ioc))
                 .WithAggregateFactory(c => new AggregateFactoryHeaderBased(appAssemblies))
                 .WithLogger(_ => new Log4NetLogger())
                 .WithMongo(writeConnectionStringName, appAssemblies)
+                .HookIntoPipelineUsing(new NEventStoreProjectorHook(ioc.Resolve<IProjector>()))
                 .Build();
 
             ioc.Resolve<IProjectionRebuild>().Start(new NEventStoreStream(es), CancellationToken.None);
+//            ioc.Resolve<IProjectionRebuild>().Start(new NEventStoreStream(es), CancellationToken.None);
 
             var uri = "http://localhost:8080";
             Console.WriteLine(uri);

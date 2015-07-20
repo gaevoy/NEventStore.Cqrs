@@ -11,7 +11,7 @@ namespace NEventStore.Cqrs.MongoDb.EventStream.Projector.MongoDb
         private readonly MongoCollection<ProjectionCheckpointDto> collection;
         public CheckpointStore(string connectionString)
         {
-            collection = GetDatabase(connectionString).GetCollection<ProjectionCheckpointDto>("_CheckpointStore");
+            collection = GetDatabase(connectionString).GetCollection<ProjectionCheckpointDto>("_Checkpoints");
         }
 
         public void Save(Checkpoint? checkpoint, string scope)
