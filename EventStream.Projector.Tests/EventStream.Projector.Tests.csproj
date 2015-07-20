@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="Impl\ProjectionRebuildTest.cs" />
     <Compile Include="Mocks\EventStreamMock.cs" />
+    <Compile Include="Mocks\ConsoleLog.cs" />
     <Compile Include="Mocks\ProjectionInfoStoreMock.cs" />
     <Compile Include="Mocks\CheckpointStoreMock.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

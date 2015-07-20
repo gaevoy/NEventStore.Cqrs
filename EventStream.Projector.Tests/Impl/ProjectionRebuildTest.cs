@@ -87,9 +87,9 @@ namespace EventStream.Projector.Tests.Impl
             var cancellation = new CancellationTokenSource();
 
             // When
-            projection.OnHandled = val => { if (val == 2) Thread.Sleep(100); };
-            var rebuilding = Task.Factory.StartNew(() => NewRebuild().Start(new LocalEventStream(history), cancellation.Token));
-            Thread.Sleep(50);
+            projection.OnHandled = val => { if (val == 2) Thread.Sleep(200); };
+            var rebuilding = Task.Factory.StartNew(() => NewRebuild().Start(new LocalEventStream(history), cancellation.Token), TaskCreationOptions.LongRunning);
+            Thread.Sleep(100);
             cancellation.Cancel();
             rebuilding.Wait();
             var actual1 = projection.Handled.ToArray();
@@ -160,7 +160,7 @@ namespace EventStream.Projector.Tests.Impl
 
         ProjectionRebuild NewRebuild()
         {
-            return new ProjectionRebuild(new[] { projection }, versions, new NullLog(), checkpoints);
+            return new ProjectionRebuild(new[] { projection }, versions, new ConsoleLog(), checkpoints);
         }
 
         EventsSlice NewEvent(int id)

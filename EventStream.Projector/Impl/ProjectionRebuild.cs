@@ -88,11 +88,9 @@ namespace EventStream.Projector.Impl
             return versions.Restore(projections).Any(e => e.Projection.Version != e.Version || e.IsExist == false);
         }
 
-        void Rebuild(IEventStream eventStream, ref Checkpoint? fromCheckpoint, Checkpoint? toCheckpoint, SimpleProjector projector, string checkpointScope, CancellationToken running)
+        void Rebuild(IEventStream eventStream, ref Checkpoint? from, Checkpoint? to, SimpleProjector projector, string checkpointScope, CancellationToken running)
         {
-            string from = fromCheckpoint.HasValue ? fromCheckpoint.Value.Position : null;
-            string to = toCheckpoint.HasValue ? toCheckpoint.Value.Position : null;
-            var commits = eventStream.Read(fromCheckpoint);
+            var commits = eventStream.Read(from);
             commits = FilterByCheckpoints(commits, from, to);
             commits = PauseAware(commits, from, to, running);
             commits = ShowLogs(commits, from, to);
@@ -104,42 +102,42 @@ namespace EventStream.Projector.Impl
             foreach (var projection in projector.projections)
                 projection.Begin();
 
-            Checkpoint? processedCheckpoint = null;
+            Checkpoint? processed = null;
             foreach (var eventsSlice in commits)
             {
                 projector.Handle(eventsSlice);
-                processedCheckpoint = eventsSlice.Checkpoint;
+                processed = eventsSlice.Checkpoint;
             }
 
             foreach (var projection in projector.projections)
                 projection.Flush();
 
-            checkpoints.Save(processedCheckpoint, checkpointScope);
-            fromCheckpoint = processedCheckpoint;
+            checkpoints.Save(processed, checkpointScope);
+            from = processed;
         }
 
-        IEnumerable<EventsSlice> FilterByCheckpoints(IEnumerable<EventsSlice> commits, string from, string to)
+        IEnumerable<EventsSlice> FilterByCheckpoints(IEnumerable<EventsSlice> commits, Checkpoint? from, Checkpoint? to)
         {
             bool startFound = from == null;
             foreach (var commit in commits)
             {
                 if (!startFound)
                 {
-                    if (from == commit.Checkpoint.Position)
+                    if (from == commit.Checkpoint)
                     {
                         startFound = true;
                     }
                     continue;
                 }
                 yield return commit;
-                if (to != null && to == commit.Checkpoint.Position)
+                if (to == commit.Checkpoint)
                     yield break;
             }
             if (!startFound)
                 throw new Exception(string.Format("Checkpoint {0} can not be found. At the end", from));
         }
 
-        IEnumerable<EventsSlice> PauseAware(IEnumerable<EventsSlice> commits, string from, string to, CancellationToken running)
+        IEnumerable<EventsSlice> PauseAware(IEnumerable<EventsSlice> commits, Checkpoint? from, Checkpoint? to, CancellationToken running)
         {
             EventsSlice? processed = null;
             foreach (var commit in commits)
@@ -163,7 +161,7 @@ namespace EventStream.Projector.Impl
             }
         }
 
-        IEnumerable<EventsSlice> ShowLogs(IEnumerable<EventsSlice> commits, string from, string to)
+        IEnumerable<EventsSlice> ShowLogs(IEnumerable<EventsSlice> commits, Checkpoint? from, Checkpoint? to)
         {
             bool first = true;
             EventsSlice? processed = null;
